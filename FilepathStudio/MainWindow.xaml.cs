@@ -123,5 +123,27 @@ namespace FilepathStudio
                 UseShellExecute = true
             });
         }
+
+        private void Editor_PreviewMouseWheel(object sender, MouseWheelEventArgs e)
+        {
+            if (Keyboard.Modifiers.HasFlag(ModifierKeys.Control))
+            {
+                double fontSize = Editor.FontSize;
+                if (e.Delta > 0)
+                {
+                    fontSize += 1;
+                }
+                else
+                {
+                    fontSize -= 1;
+                }
+
+                if (fontSize < 6) fontSize = 6;
+                if (fontSize > 100) fontSize = 100;
+
+                Editor.FontSize = fontSize;
+                e.Handled = true;
+            }
+        }
     }
 }
