@@ -8,7 +8,7 @@
         xmlns:avalonedit="http://icsharpcode.net/sharpdevelop/avalonedit"
         mc:Ignorable="d"
         x:Name="Window"
-        Title="" Height="600" Width="1000"
+        Title="FilepathStudio" Height="600" Width="1000"
         ui:WindowHelper.UseModernWindowStyle="True"
         ui:TitleBar.ExtendViewIntoTitleBar="True">
     <Grid>
