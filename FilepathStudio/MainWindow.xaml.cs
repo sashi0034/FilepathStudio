@@ -1,6 +1,7 @@
 ﻿using System.IO;
 using System.Diagnostics;
 using System.Windows;
+using System.Windows.Input;
 using System.Windows.Media;
 
 namespace FilepathStudio
@@ -32,6 +33,27 @@ namespace FilepathStudio
                           "\n" +
                           "# これはコメントです (2)\n" +
                           "C:\\Users\n";
+
+            ModifyKeyBindings();
+        }
+
+        private void ModifyKeyBindings()
+        {
+            Editor.TextArea.InputBindings.Add(
+                new KeyBinding(
+                    ApplicationCommands.Redo,
+                    Key.Z,
+                    ModifierKeys.Control | ModifierKeys.Shift
+                )
+            );
+
+            Editor.TextArea.InputBindings.Add(
+                new KeyBinding(
+                    ApplicationCommands.NotACommand,
+                    Key.Y,
+                    ModifierKeys.Control
+                )
+            );
         }
 
         private void MenuButton_Click(object sender, RoutedEventArgs e)
