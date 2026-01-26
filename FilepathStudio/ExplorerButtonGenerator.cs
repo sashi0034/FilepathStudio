@@ -54,16 +54,35 @@ namespace FilepathStudio
                 FontSize = 12
             };
 
-            var hyperlink = new Hyperlink(new Run("Open in Explorer"))
+            var copyHyperlink = new Hyperlink(new Run("Copy"))
+            {
+                Foreground = new SolidColorBrush(Color.FromRgb(0, 120, 215)), // Windows Blue
+                TextDecorations = null
+            };
+            copyHyperlink.MouseEnter += (s, e) => copyHyperlink.TextDecorations = TextDecorations.Underline;
+            copyHyperlink.MouseLeave += (s, e) => copyHyperlink.TextDecorations = null;
+            copyHyperlink.Click += (s, e) =>
+            {
+                try
+                {
+                    Clipboard.SetText(lineText);
+                }
+                catch (Exception ex)
+                {
+                    MessageBox.Show($"Could not copy text: {ex.Message}", "Error", MessageBoxButton.OK, MessageBoxImage.Error);
+                }
+            };
+
+            var explorerHyperlink = new Hyperlink(new Run("Open in Explorer"))
             {
                 Foreground = new SolidColorBrush(Color.FromRgb(0, 120, 215)), // Windows Blue
                 TextDecorations = null
             };
 
-            hyperlink.MouseEnter += (s, e) => hyperlink.TextDecorations = TextDecorations.Underline;
-            hyperlink.MouseLeave += (s, e) => hyperlink.TextDecorations = null;
+            explorerHyperlink.MouseEnter += (s, e) => explorerHyperlink.TextDecorations = TextDecorations.Underline;
+            explorerHyperlink.MouseLeave += (s, e) => explorerHyperlink.TextDecorations = null;
 
-            hyperlink.Click += (s, e) =>
+            explorerHyperlink.Click += (s, e) =>
             {
                 try
                 {
@@ -96,7 +115,9 @@ namespace FilepathStudio
                 }
             };
 
-            textBlock.Inlines.Add(hyperlink);
+            textBlock.Inlines.Add(copyHyperlink);
+            textBlock.Inlines.Add(new Run(" | ") { Foreground = Brushes.Gray });
+            textBlock.Inlines.Add(explorerHyperlink);
 
             return new InlineObjectElement(0, textBlock);
         }
