@@ -23,6 +23,15 @@ namespace FilepathStudio
                 return;
             }
 
+            if (lineText.TrimStart().StartsWith("---"))
+            {
+                // Separator color: Gray
+                ChangeLinePart(line.Offset, line.EndOffset, element => {
+                    element.TextRunProperties.SetForegroundBrush(new SolidColorBrush(Color.FromRgb(200, 200, 255)));
+                });
+                return;
+            }
+
             // Path colorization: Gainsboro (default) but let's make it slightly different if needed
             // Actually, let's color the whole line first
             ChangeLinePart(line.Offset, line.EndOffset, element => {

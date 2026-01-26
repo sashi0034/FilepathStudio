@@ -29,6 +29,9 @@ namespace FilepathStudio
             // Register the syntax highlighter
             Editor.TextArea.TextView.LineTransformers.Add(new FilepathColorizer());
 
+            // Register the horizontal line renderer
+            Editor.TextArea.TextView.BackgroundRenderers.Add(new HorizontalLineRenderer());
+
             // Load settings
             var settings = SettingsManager.Load();
             if (settings.FontSize.HasValue)
