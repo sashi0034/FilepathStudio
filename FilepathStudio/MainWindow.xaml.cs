@@ -78,6 +78,7 @@ namespace FilepathStudio
 
         private void ModifyKeyBindings()
         {
+            // Redo: Ctrl+Shift+Z
             Editor.TextArea.InputBindings.Add(
                 new KeyBinding(
                     ApplicationCommands.Redo,
@@ -86,6 +87,7 @@ namespace FilepathStudio
                 )
             );
 
+            // Disable default Ctrl+Y Redo
             Editor.TextArea.InputBindings.Add(
                 new KeyBinding(
                     ApplicationCommands.NotACommand,
@@ -94,58 +96,29 @@ namespace FilepathStudio
                 )
             );
 
-            // Add Save / Save As bindings to the editor to ensure they work when editor is focused
-            Editor.TextArea.InputBindings.Add(
-                new KeyBinding(
-                    ApplicationCommands.Save,
-                    Key.S,
-                    ModifierKeys.Control
-                )
-            );
+            // Add Save / Save As / Open bindings to the editor to ensure they work when editor is focused
+            Editor.TextArea.InputBindings.Add(new KeyBinding(ApplicationCommands.Save, Key.S, ModifierKeys.Control));
+            Editor.TextArea.InputBindings.Add(new KeyBinding(ApplicationCommands.SaveAs, Key.S,
+                ModifierKeys.Control | ModifierKeys.Shift));
+            Editor.TextArea.InputBindings.Add(new KeyBinding(ApplicationCommands.Open, Key.O, ModifierKeys.Control));
 
-            Editor.TextArea.InputBindings.Add(
-                new KeyBinding(
-                    ApplicationCommands.SaveAs,
-                    Key.S,
-                    ModifierKeys.Control | ModifierKeys.Shift
-                )
-            );
+            // Search/Replace bindings using standard ApplicationCommands
+            Editor.TextArea.InputBindings.Add(new KeyBinding(ApplicationCommands.Find, Key.F, ModifierKeys.Control));
+            this.CommandBindings.Add(new CommandBinding(ApplicationCommands.Find, (s, e) => ToggleSearch(false)));
 
-            Editor.TextArea.InputBindings.Add(
-                new KeyBinding(
-                    ApplicationCommands.Open,
-                    Key.O,
-                    ModifierKeys.Control
-                )
-            );
+            Editor.TextArea.InputBindings.Add(new KeyBinding(ApplicationCommands.Replace, Key.H, ModifierKeys.Control));
+            this.CommandBindings.Add(new CommandBinding(ApplicationCommands.Replace, (s, e) => ToggleSearch(true)));
 
-            // Search/Replace bindings
-            Editor.TextArea.InputBindings.Add(
-                new KeyBinding(
-                    new RoutedCommand("Find", typeof(MainWindow), new InputGestureCollection { new KeyGesture(Key.F, ModifierKeys.Control) }),
-                    Key.F,
-                    ModifierKeys.Control
-                )
-            );
-            this.CommandBindings.Add(new CommandBinding(new RoutedCommand("Find", typeof(MainWindow), new InputGestureCollection { new KeyGesture(Key.F, ModifierKeys.Control) }), (s, e) => ToggleSearch(false)));
+            // Close Search binding (Escape)
+            var closeSearchCmd = new RoutedCommand("CloseSearch", typeof(MainWindow),
+                new InputGestureCollection { new KeyGesture(Key.Escape) });
+            Editor.TextArea.InputBindings.Add(new KeyBinding(closeSearchCmd, Key.Escape, ModifierKeys.None));
+            this.CommandBindings.Add(new CommandBinding(closeSearchCmd,
+                (s, e) => CloseSearch_Click(s, (RoutedEventArgs)e)));
 
-            Editor.TextArea.InputBindings.Add(
-                new KeyBinding(
-                    new RoutedCommand("Replace", typeof(MainWindow), new InputGestureCollection { new KeyGesture(Key.H, ModifierKeys.Control) }),
-                    Key.H,
-                    ModifierKeys.Control
-                )
-            );
-            this.CommandBindings.Add(new CommandBinding(new RoutedCommand("Replace", typeof(MainWindow), new InputGestureCollection { new KeyGesture(Key.H, ModifierKeys.Control) }), (s, e) => ToggleSearch(true)));
-
-            Editor.TextArea.InputBindings.Add(
-                new KeyBinding(
-                    new RoutedCommand("CloseSearch", typeof(MainWindow), new InputGestureCollection { new KeyGesture(Key.Escape) }),
-                    Key.Escape,
-                    ModifierKeys.None
-                )
-            );
-            this.CommandBindings.Add(new CommandBinding(new RoutedCommand("CloseSearch", typeof(MainWindow), new InputGestureCollection { new KeyGesture(Key.Escape) }), (s, e) => CloseSearch_Click(s, (RoutedEventArgs)e)));
+            // Ensure Escape works even when focus is in the search text boxes
+            SearchTextBox.InputBindings.Add(new KeyBinding(closeSearchCmd, Key.Escape, ModifierKeys.None));
+            ReplaceTextBox.InputBindings.Add(new KeyBinding(closeSearchCmd, Key.Escape, ModifierKeys.None));
         }
 
         private void MenuButton_Click(object sender, RoutedEventArgs e)
@@ -213,7 +186,8 @@ namespace FilepathStudio
                 }
                 catch (Exception ex)
                 {
-                    var result = MessageBox.Show($"Failed to auto-save: {ex.Message}\n\nDo you want to exit anyway?", "Auto-save Error", MessageBoxButton.YesNo, MessageBoxImage.Warning);
+                    var result = MessageBox.Show($"Failed to auto-save: {ex.Message}\n\nDo you want to exit anyway?",
+                        "Auto-save Error", MessageBoxButton.YesNo, MessageBoxImage.Warning);
                     if (result == MessageBoxResult.No)
                     {
                         e.Cancel = true;
@@ -294,6 +268,7 @@ namespace FilepathStudio
                 string fileName = Path.GetFileName(_currentFilePath);
                 FilePathTextBlock.Text = $"{fileName}{dirtyIndicator} ({_currentFilePath})";
             }
+
             this.Title = "FilepathStudio" + dirtyIndicator;
         }
 
@@ -368,7 +343,7 @@ namespace FilepathStudio
 
             string editorText = Editor.Text;
             int startIndex = next ? Editor.CaretOffset : Editor.SelectionStart;
-            
+
             if (!next && startIndex > 0) startIndex--; // Move back one to find previous
 
             StringComparison comparison = StringComparison.OrdinalIgnoreCase;
@@ -430,7 +405,7 @@ namespace FilepathStudio
 
             string replaceText = ReplaceTextBox.Text;
             string editorText = Editor.Text;
-            
+
             // Note: Simple replace all. For large files this might be slow if done via Document.Replace repeatedly.
             // But for this app it's likely fine.
             int count = 0;
@@ -442,7 +417,8 @@ namespace FilepathStudio
                 {
                     Editor.Document.Replace(index, searchText.Length, replaceText);
                     editorText = Editor.Text; // Refresh text for next index
-                    index = editorText.IndexOf(searchText, index + replaceText.Length, StringComparison.OrdinalIgnoreCase);
+                    index = editorText.IndexOf(searchText, index + replaceText.Length,
+                        StringComparison.OrdinalIgnoreCase);
                     count++;
                 }
             }
@@ -453,7 +429,8 @@ namespace FilepathStudio
 
             if (count > 0)
             {
-                MessageBox.Show($"Replaced {count} occurrences.", "Replace All", MessageBoxButton.OK, MessageBoxImage.Information);
+                MessageBox.Show($"Replaced {count} occurrences.", "Replace All", MessageBoxButton.OK,
+                    MessageBoxImage.Information);
             }
         }
 

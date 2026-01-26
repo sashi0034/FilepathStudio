@@ -45,8 +45,8 @@
                             <MenuItem Header="Save File" Command="ApplicationCommands.Save" InputGestureText="Ctrl+S" />
                             <MenuItem Header="Save File As..." Command="ApplicationCommands.SaveAs" InputGestureText="Ctrl+Shift+S" />
                             <Separator />
-                            <MenuItem Header="Find" Click="FindMenu_Click" InputGestureText="Ctrl+F" />
-                            <MenuItem Header="Replace" Click="ReplaceMenu_Click" InputGestureText="Ctrl+H" />
+                            <MenuItem Header="Find" Command="ApplicationCommands.Find" InputGestureText="Ctrl+F" />
+                            <MenuItem Header="Replace" Command="ApplicationCommands.Replace" InputGestureText="Ctrl+H" />
                             <Separator />
                             <MenuItem Header="Exit" Command="ApplicationCommands.Close" />
                         </ContextMenu>
