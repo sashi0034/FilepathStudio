@@ -9,6 +9,7 @@
         mc:Ignorable="d"
         x:Name="Window"
         Title="FilepathStudio" Height="600" Width="1000"
+        Icon="Assets/filepath_studio.ico"
         ui:WindowHelper.UseModernWindowStyle="True"
         ui:TitleBar.ExtendViewIntoTitleBar="True"
         Closing="Window_Closing">
