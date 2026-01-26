@@ -65,7 +65,7 @@
                            FontSize="12"
                            TextTrimming="CharacterEllipsis" />
                 <Button Grid.Column="1" 
-                        Content="Copy Path" 
+                        Content="Copy" 
                         Margin="8,0,8,0" 
                         Padding="12,2"
                         VerticalAlignment="Center"
