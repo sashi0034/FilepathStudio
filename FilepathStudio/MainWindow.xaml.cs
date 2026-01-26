@@ -26,6 +26,37 @@ namespace FilepathStudio
             // Register the syntax highlighter
             Editor.TextArea.TextView.LineTransformers.Add(new FilepathColorizer());
 
+            // Load settings
+            var settings = SettingsManager.Load();
+            if (settings.FontSize.HasValue)
+            {
+                Editor.FontSize = settings.FontSize.Value;
+            }
+
+            // Restore last opened file
+            if (!string.IsNullOrEmpty(settings.LastOpenedFilePath) && File.Exists(settings.LastOpenedFilePath))
+            {
+                try
+                {
+                    _currentFilePath = settings.LastOpenedFilePath;
+                    Editor.Text = File.ReadAllText(_currentFilePath);
+                }
+                catch (Exception ex)
+                {
+                    Debug.WriteLine($"Failed to restore file: {ex.Message}");
+                    LoadDefaultText();
+                }
+            }
+            else
+            {
+                LoadDefaultText();
+            }
+
+            ModifyKeyBindings();
+        }
+
+        private void LoadDefaultText()
+        {
             // Initial text
             Editor.Text = "# これはコメントです\n" +
                           "C:\\Windows\\System32\\drivers\\etc\\hosts\n" +
@@ -33,8 +64,6 @@ namespace FilepathStudio
                           "\n" +
                           "# これはコメントです (2)\n" +
                           "C:\\Users\n";
-
-            ModifyKeyBindings();
         }
 
         private void ModifyKeyBindings()
@@ -100,7 +129,17 @@ namespace FilepathStudio
 
         private void Exit_Click(object sender, RoutedEventArgs e)
         {
-            Application.Current.Shutdown();
+            Close();
+        }
+
+        private void Window_Closing(object sender, System.ComponentModel.CancelEventArgs e)
+        {
+            var settings = new AppSettings
+            {
+                LastOpenedFilePath = _currentFilePath,
+                FontSize = Editor.FontSize
+            };
+            SettingsManager.Save(settings);
         }
 
         private void OpenTerminal_Click(object sender, RoutedEventArgs e)
