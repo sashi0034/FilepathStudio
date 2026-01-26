@@ -164,7 +164,17 @@ namespace FilepathStudio
 
         private void SaveFileAs_Click(object sender, RoutedEventArgs e)
         {
-            var saveFileDialog = new Microsoft.Win32.SaveFileDialog();
+            var saveFileDialog = new Microsoft.Win32.SaveFileDialog
+            {
+                Title = "Save Markdown",
+                Filter = "Markdown files (*.md)|*.md|All files (*.*)|*.*",
+                DefaultExt = ".md",
+                AddExtension = true,
+                FileName = _currentFilePath != null
+                    ? Path.GetFileNameWithoutExtension(_currentFilePath)
+                    : "filepath"
+            };
+
             if (saveFileDialog.ShowDialog() == true)
             {
                 _currentFilePath = saveFileDialog.FileName;
