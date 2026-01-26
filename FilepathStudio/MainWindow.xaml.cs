@@ -53,6 +53,7 @@ namespace FilepathStudio
             }
 
             ModifyKeyBindings();
+            UpdateFilePathDisplay();
         }
 
         private void LoadDefaultText()
@@ -64,6 +65,7 @@ namespace FilepathStudio
                           "\n" +
                           "# これはコメントです (2)\n" +
                           "C:\\Users\n";
+            UpdateFilePathDisplay();
         }
 
         private void ModifyKeyBindings()
@@ -102,6 +104,7 @@ namespace FilepathStudio
             {
                 _currentFilePath = openFileDialog.FileName;
                 Editor.Text = File.ReadAllText(_currentFilePath);
+                UpdateFilePathDisplay();
             }
         }
 
@@ -124,6 +127,7 @@ namespace FilepathStudio
             {
                 _currentFilePath = saveFileDialog.FileName;
                 File.WriteAllText(_currentFilePath, Editor.Text);
+                UpdateFilePathDisplay();
             }
         }
 
@@ -182,6 +186,27 @@ namespace FilepathStudio
 
                 Editor.FontSize = fontSize;
                 e.Handled = true;
+            }
+        }
+
+        private void UpdateFilePathDisplay()
+        {
+            if (string.IsNullOrEmpty(_currentFilePath))
+            {
+                FilePathTextBlock.Text = "No file opened";
+            }
+            else
+            {
+                string fileName = Path.GetFileName(_currentFilePath);
+                FilePathTextBlock.Text = $"{fileName} ({_currentFilePath})";
+            }
+        }
+
+        private void CopyPath_Click(object sender, RoutedEventArgs e)
+        {
+            if (!string.IsNullOrEmpty(_currentFilePath))
+            {
+                Clipboard.SetText(_currentFilePath);
             }
         }
     }
