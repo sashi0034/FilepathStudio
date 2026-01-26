@@ -12,6 +12,17 @@
         ui:WindowHelper.UseModernWindowStyle="True"
         ui:TitleBar.ExtendViewIntoTitleBar="True"
         Closing="Window_Closing">
+    <Window.CommandBindings>
+        <CommandBinding Command="ApplicationCommands.Open" Executed="OpenFile_Click" />
+        <CommandBinding Command="ApplicationCommands.Save" Executed="SaveFile_Click" />
+        <CommandBinding Command="ApplicationCommands.SaveAs" Executed="SaveFileAs_Click" />
+        <CommandBinding Command="ApplicationCommands.Close" Executed="Exit_Click" />
+    </Window.CommandBindings>
+    <Window.InputBindings>
+        <KeyBinding Command="ApplicationCommands.Open" Modifiers="Control" Key="O" />
+        <KeyBinding Command="ApplicationCommands.Save" Modifiers="Control" Key="S" />
+        <KeyBinding Command="ApplicationCommands.SaveAs" Modifiers="Control+Shift" Key="S" />
+    </Window.InputBindings>
     <Grid>
         <Grid.RowDefinitions>
             <RowDefinition Height="Auto" />
@@ -30,11 +41,11 @@
                     </ui:TitleBarButton.Content>
                     <ui:TitleBarButton.ContextMenu>
                         <ContextMenu>
-                            <MenuItem Header="Open File" Click="OpenFile_Click" />
-                            <MenuItem Header="Save File" Click="SaveFile_Click" />
-                            <MenuItem Header="Save File As..." Click="SaveFileAs_Click" />
+                            <MenuItem Header="Open File" Command="ApplicationCommands.Open" InputGestureText="Ctrl+O" />
+                            <MenuItem Header="Save File" Command="ApplicationCommands.Save" InputGestureText="Ctrl+S" />
+                            <MenuItem Header="Save File As..." Command="ApplicationCommands.SaveAs" InputGestureText="Ctrl+Shift+S" />
                             <Separator />
-                            <MenuItem Header="Exit" Click="Exit_Click" />
+                            <MenuItem Header="Exit" Command="ApplicationCommands.Close" />
                         </ContextMenu>
                     </ui:TitleBarButton.ContextMenu>
                 </ui:TitleBarButton>
@@ -82,7 +93,8 @@
             ShowLineNumbers="True"
             HorizontalScrollBarVisibility="Auto"
             VerticalScrollBarVisibility="Auto"
-            PreviewMouseWheel="Editor_PreviewMouseWheel">
+            PreviewMouseWheel="Editor_PreviewMouseWheel"
+            TextChanged="Editor_TextChanged">
         </avalonedit:TextEditor>
     </Grid>
 </Window>

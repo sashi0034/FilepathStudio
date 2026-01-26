@@ -12,6 +12,8 @@ namespace FilepathStudio
     public partial class MainWindow : Window
     {
         private string? _currentFilePath;
+        private bool _isDirty = false;
+        private bool _isLoading = false;
 
         public MainWindow()
         {
@@ -38,8 +40,11 @@ namespace FilepathStudio
             {
                 try
                 {
+                    _isLoading = true;
                     _currentFilePath = settings.LastOpenedFilePath;
                     Editor.Text = File.ReadAllText(_currentFilePath);
+                    _isDirty = false;
+                    _isLoading = false;
                 }
                 catch (Exception ex)
                 {
@@ -58,13 +63,15 @@ namespace FilepathStudio
 
         private void LoadDefaultText()
         {
-            // Initial text
+            _isLoading = true;
             Editor.Text = "# これはコメントです\n" +
                           "C:\\Windows\\System32\\drivers\\etc\\hosts\n" +
                           "C:\\Windows\n" +
                           "\n" +
                           "# これはコメントです (2)\n" +
                           "C:\\Users\n";
+            _isDirty = false;
+            _isLoading = false;
             UpdateFilePathDisplay();
         }
 
@@ -85,6 +92,31 @@ namespace FilepathStudio
                     ModifierKeys.Control
                 )
             );
+
+            // Add Save / Save As bindings to the editor to ensure they work when editor is focused
+            Editor.TextArea.InputBindings.Add(
+                new KeyBinding(
+                    ApplicationCommands.Save,
+                    Key.S,
+                    ModifierKeys.Control
+                )
+            );
+
+            Editor.TextArea.InputBindings.Add(
+                new KeyBinding(
+                    ApplicationCommands.SaveAs,
+                    Key.S,
+                    ModifierKeys.Control | ModifierKeys.Shift
+                )
+            );
+
+            Editor.TextArea.InputBindings.Add(
+                new KeyBinding(
+                    ApplicationCommands.Open,
+                    Key.O,
+                    ModifierKeys.Control
+                )
+            );
         }
 
         private void MenuButton_Click(object sender, RoutedEventArgs e)
@@ -102,8 +134,11 @@ namespace FilepathStudio
             var openFileDialog = new Microsoft.Win32.OpenFileDialog();
             if (openFileDialog.ShowDialog() == true)
             {
+                _isLoading = true;
                 _currentFilePath = openFileDialog.FileName;
                 Editor.Text = File.ReadAllText(_currentFilePath);
+                _isDirty = false;
+                _isLoading = false;
                 UpdateFilePathDisplay();
             }
         }
@@ -117,6 +152,8 @@ namespace FilepathStudio
             else
             {
                 File.WriteAllText(_currentFilePath, Editor.Text);
+                _isDirty = false;
+                UpdateFilePathDisplay();
             }
         }
 
@@ -127,6 +164,7 @@ namespace FilepathStudio
             {
                 _currentFilePath = saveFileDialog.FileName;
                 File.WriteAllText(_currentFilePath, Editor.Text);
+                _isDirty = false;
                 UpdateFilePathDisplay();
             }
         }
@@ -138,6 +176,23 @@ namespace FilepathStudio
 
         private void Window_Closing(object sender, System.ComponentModel.CancelEventArgs e)
         {
+            if (_isDirty && !string.IsNullOrEmpty(_currentFilePath))
+            {
+                try
+                {
+                    File.WriteAllText(_currentFilePath, Editor.Text);
+                }
+                catch (Exception ex)
+                {
+                    var result = MessageBox.Show($"Failed to auto-save: {ex.Message}\n\nDo you want to exit anyway?", "Auto-save Error", MessageBoxButton.YesNo, MessageBoxImage.Warning);
+                    if (result == MessageBoxResult.No)
+                    {
+                        e.Cancel = true;
+                        return;
+                    }
+                }
+            }
+
             var settings = new AppSettings
             {
                 LastOpenedFilePath = _currentFilePath,
@@ -189,17 +244,28 @@ namespace FilepathStudio
             }
         }
 
+        private void Editor_TextChanged(object sender, EventArgs e)
+        {
+            if (!_isLoading)
+            {
+                _isDirty = true;
+                UpdateFilePathDisplay();
+            }
+        }
+
         private void UpdateFilePathDisplay()
         {
+            string dirtyIndicator = _isDirty ? "*" : "";
             if (string.IsNullOrEmpty(_currentFilePath))
             {
-                FilePathTextBlock.Text = "No file opened";
+                FilePathTextBlock.Text = "No file opened" + dirtyIndicator;
             }
             else
             {
                 string fileName = Path.GetFileName(_currentFilePath);
-                FilePathTextBlock.Text = $"{fileName} ({_currentFilePath})";
+                FilePathTextBlock.Text = $"{fileName}{dirtyIndicator} ({_currentFilePath})";
             }
+            this.Title = "FilepathStudio" + dirtyIndicator;
         }
 
         private void CopyPath_Click(object sender, RoutedEventArgs e)
