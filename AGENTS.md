@@ -40,3 +40,5 @@ C:\Users\user\Documents\file3.txt
 - 主な使用ライブラリは ModernWpfUI, AvalonEdit です。
 
 - アプリケーションのプロジェクトは `FilepathStudio` です。
+
+- ビルドは `dotnet build` で出来ると思われます。
