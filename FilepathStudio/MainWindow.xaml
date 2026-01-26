@@ -7,10 +7,51 @@
         xmlns:ui="http://schemas.modernwpf.com/2019"
         xmlns:avalonedit="http://icsharpcode.net/sharpdevelop/avalonedit"
         mc:Ignorable="d"
-        Title="MainWindow" Height="450" Width="800"
-        ui:WindowHelper.UseModernWindowStyle="True">
+        x:Name="Window"
+        Title="" Height="600" Width="1000"
+        ui:WindowHelper.UseModernWindowStyle="True"
+        ui:TitleBar.ExtendViewIntoTitleBar="True">
     <Grid>
+        <Grid.RowDefinitions>
+            <RowDefinition Height="Auto" />
+            <RowDefinition Height="*" />
+        </Grid.RowDefinitions>
+
+        <Grid Grid.Row="0"
+              VerticalAlignment="Center"
+              Height="{Binding ElementName=Window, Path=(ui:TitleBar.Height)}">
+
+            <StackPanel Orientation="Horizontal" VerticalAlignment="Center">
+                <ui:TitleBarButton x:Name="FileButton" Click="MenuButton_Click" Width="Auto">
+                    <ui:TitleBarButton.Content>
+                        <TextBlock Text="File" VerticalAlignment="Center" Margin="12,0" FontFamily="Segoe UI" FontSize="14" />
+                    </ui:TitleBarButton.Content>
+                    <ui:TitleBarButton.ContextMenu>
+                        <ContextMenu>
+                            <MenuItem Header="Open File" Click="OpenFile_Click" />
+                            <MenuItem Header="Save File" Click="SaveFile_Click" />
+                            <MenuItem Header="Save File As..." Click="SaveFileAs_Click" />
+                            <Separator />
+                            <MenuItem Header="Exit" Click="Exit_Click" />
+                        </ContextMenu>
+                    </ui:TitleBarButton.ContextMenu>
+                </ui:TitleBarButton>
+
+                <ui:TitleBarButton x:Name="TerminalButton" Click="MenuButton_Click" Width="Auto">
+                    <ui:TitleBarButton.Content>
+                        <TextBlock Text="Terminal" VerticalAlignment="Center" Margin="12,0" FontFamily="Segoe UI" FontSize="14" />
+                    </ui:TitleBarButton.Content>
+                    <ui:TitleBarButton.ContextMenu>
+                        <ContextMenu>
+                            <MenuItem Header="Open Terminal" Click="OpenTerminal_Click" />
+                        </ContextMenu>
+                    </ui:TitleBarButton.ContextMenu>
+                </ui:TitleBarButton>
+            </StackPanel>
+        </Grid>
+
         <avalonedit:TextEditor
+            Grid.Row="1"
             Name="Editor"
             FontFamily="Consolas"
             FontSize="14"
