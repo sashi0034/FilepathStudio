@@ -14,6 +14,7 @@ namespace FilepathStudio
         private string? _currentFilePath;
         private bool _isDirty = false;
         private bool _isLoading = false;
+        private int _lastSearchIndex = -1;
 
         public MainWindow()
         {
@@ -117,6 +118,34 @@ namespace FilepathStudio
                     ModifierKeys.Control
                 )
             );
+
+            // Search/Replace bindings
+            Editor.TextArea.InputBindings.Add(
+                new KeyBinding(
+                    new RoutedCommand("Find", typeof(MainWindow), new InputGestureCollection { new KeyGesture(Key.F, ModifierKeys.Control) }),
+                    Key.F,
+                    ModifierKeys.Control
+                )
+            );
+            this.CommandBindings.Add(new CommandBinding(new RoutedCommand("Find", typeof(MainWindow), new InputGestureCollection { new KeyGesture(Key.F, ModifierKeys.Control) }), (s, e) => ToggleSearch(false)));
+
+            Editor.TextArea.InputBindings.Add(
+                new KeyBinding(
+                    new RoutedCommand("Replace", typeof(MainWindow), new InputGestureCollection { new KeyGesture(Key.H, ModifierKeys.Control) }),
+                    Key.H,
+                    ModifierKeys.Control
+                )
+            );
+            this.CommandBindings.Add(new CommandBinding(new RoutedCommand("Replace", typeof(MainWindow), new InputGestureCollection { new KeyGesture(Key.H, ModifierKeys.Control) }), (s, e) => ToggleSearch(true)));
+
+            Editor.TextArea.InputBindings.Add(
+                new KeyBinding(
+                    new RoutedCommand("CloseSearch", typeof(MainWindow), new InputGestureCollection { new KeyGesture(Key.Escape) }),
+                    Key.Escape,
+                    ModifierKeys.None
+                )
+            );
+            this.CommandBindings.Add(new CommandBinding(new RoutedCommand("CloseSearch", typeof(MainWindow), new InputGestureCollection { new KeyGesture(Key.Escape) }), (s, e) => CloseSearch_Click(s, (RoutedEventArgs)e)));
         }
 
         private void MenuButton_Click(object sender, RoutedEventArgs e)
@@ -275,5 +304,159 @@ namespace FilepathStudio
                 Clipboard.SetText(_currentFilePath);
             }
         }
+
+        #region Search and Replace
+
+        private void FindMenu_Click(object sender, RoutedEventArgs e) => ToggleSearch(false);
+        private void ReplaceMenu_Click(object sender, RoutedEventArgs e) => ToggleSearch(true);
+
+        private void ToggleSearch(bool showReplace)
+        {
+            SearchPanel.Visibility = Visibility.Visible;
+            ReplaceRow.Visibility = showReplace ? Visibility.Visible : Visibility.Collapsed;
+            SearchTextBox.Focus();
+            SearchTextBox.SelectAll();
+        }
+
+        private void CloseSearch_Click(object sender, RoutedEventArgs e)
+        {
+            SearchPanel.Visibility = Visibility.Collapsed;
+            Editor.Focus();
+        }
+
+        private void SearchTextBox_KeyDown(object sender, KeyEventArgs e)
+        {
+            if (e.Key == Key.Enter)
+            {
+                bool next = !Keyboard.Modifiers.HasFlag(ModifierKeys.Shift);
+                PerformFind(next);
+                e.Handled = true;
+            }
+            else if (e.Key == Key.Escape)
+            {
+                CloseSearch_Click(sender, e);
+                e.Handled = true;
+            }
+        }
+
+        private void SearchTextBox_TextChanged(object sender, System.Windows.Controls.TextChangedEventArgs e)
+        {
+            _lastSearchIndex = -1; // Reset search position when text changes
+        }
+
+        private void ReplaceTextBox_KeyDown(object sender, KeyEventArgs e)
+        {
+            if (e.Key == Key.Enter)
+            {
+                PerformReplace();
+                e.Handled = true;
+            }
+            else if (e.Key == Key.Escape)
+            {
+                CloseSearch_Click(sender, e);
+                e.Handled = true;
+            }
+        }
+
+        private void FindNext_Click(object sender, RoutedEventArgs e) => PerformFind(true);
+        private void FindPrev_Click(object sender, RoutedEventArgs e) => PerformFind(false);
+
+        private void PerformFind(bool next)
+        {
+            string searchText = SearchTextBox.Text;
+            if (string.IsNullOrEmpty(searchText)) return;
+
+            string editorText = Editor.Text;
+            int startIndex = next ? Editor.CaretOffset : Editor.SelectionStart;
+            
+            if (!next && startIndex > 0) startIndex--; // Move back one to find previous
+
+            StringComparison comparison = StringComparison.OrdinalIgnoreCase;
+            int index;
+
+            if (next)
+            {
+                index = editorText.IndexOf(searchText, startIndex, comparison);
+                if (index == -1 && startIndex > 0) // Wrap around
+                {
+                    index = editorText.IndexOf(searchText, 0, comparison);
+                }
+            }
+            else
+            {
+                index = editorText.LastIndexOf(searchText, startIndex, comparison);
+                if (index == -1 && startIndex < editorText.Length - 1) // Wrap around
+                {
+                    index = editorText.LastIndexOf(searchText, editorText.Length - 1, comparison);
+                }
+            }
+
+            if (index != -1)
+            {
+                Editor.Select(index, searchText.Length);
+                Editor.ScrollToLine(Editor.Document.GetLineByOffset(index).LineNumber);
+                _lastSearchIndex = index;
+                SearchTextBox.BorderBrush = null; // Clear error if any
+            }
+            else
+            {
+                SearchTextBox.BorderBrush = Brushes.Red;
+            }
+        }
+
+        private void Replace_Click(object sender, RoutedEventArgs e) => PerformReplace();
+
+        private void PerformReplace()
+        {
+            string searchText = SearchTextBox.Text;
+            if (string.IsNullOrEmpty(searchText)) return;
+
+            if (Editor.SelectedText.Equals(searchText, StringComparison.OrdinalIgnoreCase))
+            {
+                int start = Editor.SelectionStart;
+                Editor.Document.Replace(start, Editor.SelectionLength, ReplaceTextBox.Text);
+                PerformFind(true); // Find next match
+            }
+            else
+            {
+                PerformFind(true); // Just find first
+            }
+        }
+
+        private void ReplaceAll_Click(object sender, RoutedEventArgs e)
+        {
+            string searchText = SearchTextBox.Text;
+            if (string.IsNullOrEmpty(searchText)) return;
+
+            string replaceText = ReplaceTextBox.Text;
+            string editorText = Editor.Text;
+            
+            // Note: Simple replace all. For large files this might be slow if done via Document.Replace repeatedly.
+            // But for this app it's likely fine.
+            int count = 0;
+            Editor.BeginChange();
+            try
+            {
+                int index = editorText.IndexOf(searchText, 0, StringComparison.OrdinalIgnoreCase);
+                while (index != -1)
+                {
+                    Editor.Document.Replace(index, searchText.Length, replaceText);
+                    editorText = Editor.Text; // Refresh text for next index
+                    index = editorText.IndexOf(searchText, index + replaceText.Length, StringComparison.OrdinalIgnoreCase);
+                    count++;
+                }
+            }
+            finally
+            {
+                Editor.EndChange();
+            }
+
+            if (count > 0)
+            {
+                MessageBox.Show($"Replaced {count} occurrences.", "Replace All", MessageBoxButton.OK, MessageBoxImage.Information);
+            }
+        }
+
+        #endregion
     }
 }

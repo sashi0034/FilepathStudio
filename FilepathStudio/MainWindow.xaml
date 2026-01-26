@@ -45,6 +45,9 @@
                             <MenuItem Header="Save File" Command="ApplicationCommands.Save" InputGestureText="Ctrl+S" />
                             <MenuItem Header="Save File As..." Command="ApplicationCommands.SaveAs" InputGestureText="Ctrl+Shift+S" />
                             <Separator />
+                            <MenuItem Header="Find" Click="FindMenu_Click" InputGestureText="Ctrl+F" />
+                            <MenuItem Header="Replace" Click="ReplaceMenu_Click" InputGestureText="Ctrl+H" />
+                            <Separator />
                             <MenuItem Header="Exit" Command="ApplicationCommands.Close" />
                         </ContextMenu>
                     </ui:TitleBarButton.ContextMenu>
@@ -85,16 +88,66 @@
             </Grid>
         </Border>
 
-        <avalonedit:TextEditor
-            Grid.Row="2"
-            Name="Editor"
-            FontFamily="Consolas"
-            FontSize="14"
-            ShowLineNumbers="True"
-            HorizontalScrollBarVisibility="Auto"
-            VerticalScrollBarVisibility="Auto"
-            PreviewMouseWheel="Editor_PreviewMouseWheel"
-            TextChanged="Editor_TextChanged">
-        </avalonedit:TextEditor>
+        <Grid Grid.Row="2">
+            <avalonedit:TextEditor
+                Name="Editor"
+                FontFamily="Consolas"
+                FontSize="14"
+                ShowLineNumbers="True"
+                HorizontalScrollBarVisibility="Auto"
+                VerticalScrollBarVisibility="Auto"
+                PreviewMouseWheel="Editor_PreviewMouseWheel"
+                TextChanged="Editor_TextChanged">
+            </avalonedit:TextEditor>
+
+            <!-- Search and Replace Panel -->
+            <Border x:Name="SearchPanel" 
+                    Visibility="Collapsed"
+                    VerticalAlignment="Top" 
+                    HorizontalAlignment="Right" 
+                    Margin="0,10,30,0" 
+                    Background="#2D2D2D" 
+                    BorderBrush="#454545" 
+                    BorderThickness="1" 
+                    CornerRadius="4"
+                    Width="380">
+                <Border.Effect>
+                    <DropShadowEffect BlurRadius="15" Direction="270" RenderingBias="Quality" ShadowDepth="2" Opacity="0.4" />
+                </Border.Effect>
+                <StackPanel Margin="10">
+                    <!-- Search Row -->
+                    <Grid Margin="0,0,0,8">
+                        <Grid.ColumnDefinitions>
+                            <ColumnDefinition Width="*" />
+                            <ColumnDefinition Width="Auto" />
+                        </Grid.ColumnDefinitions>
+                        <TextBox x:Name="SearchTextBox" 
+                                 ui:ControlHelper.PlaceholderText="Find"
+                                 KeyDown="SearchTextBox_KeyDown"
+                                 TextChanged="SearchTextBox_TextChanged" />
+                        <StackPanel Grid.Column="1" Orientation="Horizontal" Margin="8,0,0,0">
+                            <Button x:Name="FindNextButton" Content="" FontFamily="Segoe MDL2 Assets" Click="FindNext_Click" Width="32" Padding="0" ToolTip="Find Next (Enter)" />
+                            <Button x:Name="FindPrevButton" Content="" FontFamily="Segoe MDL2 Assets" Click="FindPrev_Click" Width="32" Padding="0" Margin="4,0" ToolTip="Find Previous (Shift+Enter)" />
+                            <Button Content="" FontFamily="Segoe MDL2 Assets" Click="CloseSearch_Click" Width="32" Padding="0" ToolTip="Close (Esc)" />
+                        </StackPanel>
+                    </Grid>
+
+                    <!-- Replace Row -->
+                    <Grid x:Name="ReplaceRow" Visibility="Collapsed">
+                        <Grid.ColumnDefinitions>
+                            <ColumnDefinition Width="*" />
+                            <ColumnDefinition Width="Auto" />
+                        </Grid.ColumnDefinitions>
+                        <TextBox x:Name="ReplaceTextBox" 
+                                 ui:ControlHelper.PlaceholderText="Replace"
+                                 KeyDown="ReplaceTextBox_KeyDown" />
+                        <StackPanel Grid.Column="1" Orientation="Horizontal" Margin="8,0,0,0">
+                            <Button Content="Replace" Click="Replace_Click" Width="68" FontSize="12" ToolTip="Replace" />
+                            <Button Content="All" Click="ReplaceAll_Click" Width="32" Margin="4,0" FontSize="12" ToolTip="Replace All" />
+                        </StackPanel>
+                    </Grid>
+                </StackPanel>
+            </Border>
+        </Grid>
     </Grid>
 </Window>
