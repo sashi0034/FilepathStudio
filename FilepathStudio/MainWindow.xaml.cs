@@ -156,6 +156,7 @@ namespace FilepathStudio
             }
             else
             {
+                CreateBackup();
                 File.WriteAllText(_currentFilePath, Editor.Text);
                 _isDirty = false;
                 UpdateFilePathDisplay();
@@ -178,6 +179,7 @@ namespace FilepathStudio
             if (saveFileDialog.ShowDialog() == true)
             {
                 _currentFilePath = saveFileDialog.FileName;
+                CreateBackup();
                 File.WriteAllText(_currentFilePath, Editor.Text);
                 _isDirty = false;
                 UpdateFilePathDisplay();
@@ -282,6 +284,9 @@ namespace FilepathStudio
                 FilePathTextBlock.Text = $"{fileName}{dirtyIndicator} ({_currentFilePath})";
             }
 
+            bool hasFile = !string.IsNullOrEmpty(_currentFilePath);
+            CopyButton.IsEnabled = hasFile;
+
             this.Title = "FilepathStudio" + dirtyIndicator;
         }
 
@@ -291,6 +296,45 @@ namespace FilepathStudio
             {
                 Clipboard.SetText(_currentFilePath);
             }
+        }
+
+        private void CreateBackup()
+        {
+            if (string.IsNullOrEmpty(_currentFilePath)) return;
+
+            try
+            {
+                // Only backup if the file already exists on disk (don't backup for the very first save of a new file)
+                if (File.Exists(_currentFilePath))
+                {
+                    string backupPath = GetNextBackupFileName(_currentFilePath);
+                    // Backup the EXISTING file content on disk, not the current editor text, 
+                    // because we are about to overwrite the disk file with editor text.
+                    File.Copy(_currentFilePath, backupPath, true);
+                    Debug.WriteLine($"Backup created: {backupPath}");
+                }
+            }
+            catch (Exception ex)
+            {
+                Debug.WriteLine($"Failed to create backup: {ex.Message}");
+            }
+        }
+
+        private string GetNextBackupFileName(string originalPath)
+        {
+            // Try .bak
+            string baseBackup = originalPath + ".bak";
+            if (!File.Exists(baseBackup)) return baseBackup;
+
+            // Try .bak1 to .bak6
+            for (int i = 1; i <= 6; i++)
+            {
+                string path = baseBackup + i;
+                if (!File.Exists(path)) return path;
+            }
+
+            // Default to .bak7 (overwrites if exists)
+            return baseBackup + "7";
         }
 
         #region Search and Replace
