@@ -326,15 +326,16 @@ namespace FilepathStudio
             string baseBackup = originalPath + ".bak";
             if (!File.Exists(baseBackup)) return baseBackup;
 
-            // Try .bak1 to .bak6
-            for (int i = 1; i <= 6; i++)
+            // Try .bak1 to .bakM
+            const int maxBackups = 5;
+            for (int i = 1; i <= maxBackups - 1; i++)
             {
                 string path = baseBackup + i;
                 if (!File.Exists(path)) return path;
             }
 
-            // Default to .bak7 (overwrites if exists)
-            return baseBackup + "7";
+            // Default to .bakM (overwrites if exists)
+            return baseBackup + maxBackups;
         }
 
         #region Search and Replace
