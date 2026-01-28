@@ -22,6 +22,7 @@ namespace FilepathStudio
 
             Editor.Background = new SolidColorBrush(Color.FromRgb(32, 32, 32));
             Editor.Foreground = Brushes.Gainsboro;
+            Editor.TextArea.TextView.LinkTextForegroundBrush = new SolidColorBrush(Color.FromRgb(102, 175, 233));
 
             // Register the inline button generator
             Editor.TextArea.TextView.ElementGenerators.Add(new ExplorerButtonGenerator());
