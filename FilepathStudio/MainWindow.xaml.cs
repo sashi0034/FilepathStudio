@@ -30,8 +30,9 @@ namespace FilepathStudio
             // Register the syntax highlighter
             Editor.TextArea.TextView.LineTransformers.Add(new FilepathColorizer());
 
-            // Register the horizontal line renderer
+            // Register the background renderers
             Editor.TextArea.TextView.BackgroundRenderers.Add(new HorizontalLineRenderer());
+            Editor.TextArea.TextView.BackgroundRenderers.Add(new CodeBlockBackgroundRenderer());
 
             // Load settings
             var settings = SettingsManager.Load();
