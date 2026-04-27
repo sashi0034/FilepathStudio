@@ -1,4 +1,4 @@
-﻿using System.IO;
+using System.IO;
 using System.Diagnostics;
 using System.Windows;
 using System.Windows.Input;
@@ -14,7 +14,6 @@ namespace FilepathStudio
         private string? _currentFilePath;
         private bool _isDirty = false;
         private bool _isLoading = false;
-        private int _lastSearchIndex = -1;
 
         public MainWindow()
         {
@@ -24,8 +23,9 @@ namespace FilepathStudio
             Editor.Foreground = Brushes.Gainsboro;
             Editor.TextArea.TextView.LinkTextForegroundBrush = new SolidColorBrush(Color.FromRgb(102, 175, 233));
 
-            // Register the inline button generator
+            // Register the inline button generators
             Editor.TextArea.TextView.ElementGenerators.Add(new ExplorerButtonGenerator());
+            Editor.TextArea.TextView.ElementGenerators.Add(new PowerShellButtonGenerator());
 
             // Register the syntax highlighter
             Editor.TextArea.TextView.LineTransformers.Add(new FilepathColorizer());
@@ -375,7 +375,6 @@ namespace FilepathStudio
 
         private void SearchTextBox_TextChanged(object sender, System.Windows.Controls.TextChangedEventArgs e)
         {
-            _lastSearchIndex = -1; // Reset search position when text changes
         }
 
         private void ReplaceTextBox_KeyDown(object sender, KeyEventArgs e)
@@ -429,7 +428,6 @@ namespace FilepathStudio
             {
                 Editor.Select(index, searchText.Length);
                 Editor.ScrollToLine(Editor.Document.GetLineByOffset(index).LineNumber);
-                _lastSearchIndex = index;
                 SearchTextBox.BorderBrush = null; // Clear error if any
             }
             else
